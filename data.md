@@ -13,4 +13,6 @@ DAY 1
 
 7. https://notebooklm.google.com/notebook/9beb2011-b3c3-4247-b1e1-713b1c97537b
 
+8. https://chatgpt.com/g/g-p-6a562e3a21a88191b10564d890416a64 👈🏻 superb ideas
+
 DAY 2
