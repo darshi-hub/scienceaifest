@@ -16,3 +16,5 @@ DAY 1
 8. https://chatgpt.com/g/g-p-6a562e3a21a88191b10564d890416a64 👈🏻 superb ideas
 
 DAY 2
+
+1. https://chatgpt.com/share/6a57ac60-16cc-83ee-ae94-f94c1927ac32 -- PROJECT EVO LAB IDEA-2
