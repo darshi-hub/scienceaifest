@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molecule Architect AI - Sustainable Material Designer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">⚛️</span>
+                <span class="logo-text">MOLECULE ARCHITECT</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#about" class="nav-link">About AI</a></li>
+                <li><a href="#generator" class="nav-link">Generator</a></li>
+                <li><a href="#research" class="nav-link">Research</a></li>
+                <li><a href="#team" class="nav-link">Team</a></li>
+            </ul>
+            <button class="btn-api-settings" onclick="showApiSettings()">⚙️ API Settings</button>
+            <button class="nav-toggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- API Settings Modal -->
+    <div id="apiModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeApiSettings()">&times;</span>
+            <h2>🔑 API Key Settings</h2>
+            <p>Add your Gemini API key to use real AI molecule generation.</p>
+            
+            <div class="api-settings-box">
+                <label for="apiKeyInput">Your Gemini API Key:</label>
+                <textarea id="apiKeyInput" placeholder="Paste your API key here... (stored locally in your browser)" style="
+                    width: 100%;
+                    height: 60px;
+                    padding: 10px;
+                    border: 1px solid rgba(0, 212, 255, 0.3);
+                    border-radius: 8px;
+                    background: rgba(0, 0, 0, 0.4);
+                    color: #a8b5d1;
+                    font-family: monospace;
+                    resize: vertical;
+                "></textarea>
+                
+                <p style="font-size: 0.9rem; color: #a8b5d1; margin-top: 1rem;">
+                    <strong>Get your free API key:</strong> <a href="https://aistudio.google.com/app/apikeys" target="_blank" style="color: #00d4ff; text-decoration: underline;">Google AI Studio</a>
+                </p>
+                
+                <p style="font-size: 0.85rem; color: #888; margin-top: 1rem; background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 5px;">
+                    🔒 <strong>Security:</strong> Your API key is stored only in your browser's localStorage. It's never sent to any server except Google's Gemini API. We recommend creating a separate, limited API key for this demo.
+                </p>
+            </div>
+            
+            <div class="modal-buttons" style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button class="btn-primary" onclick="saveApiKey()" style="flex: 1;">Save API Key</button>
+                <button class="btn-secondary" onclick="clearApiKey()" style="flex: 1;">Clear API Key</button>
+                <button class="btn-secondary" onclick="closeApiSettings()" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <canvas id="particleCanvas" class="particle-canvas"></canvas>
+        <div class="molecule-background">
+            <div class="floating-atom atom-1"></div>
+            <div class="floating-atom atom-2"></div>
+            <div class="floating-atom atom-3"></div>
+            <svg class="dna-helix" viewBox="0 0 100 200">
+                <path d="M 50 0 Q 30 25 50 50 Q 70 75 50 100 Q 30 125 50 150 Q 70 175 50 200" fill="none" stroke="url(#grad)" stroke-width="2"/>
+                <circle cx="35" cy="25" r="3" fill="#00d4ff" opacity="0.6"/>
+                <circle cx="65" cy="75" r="3" fill="#00d4ff" opacity="0.6"/>
+                <circle cx="35" cy="125" r="3" fill="#00d4ff" opacity="0.6"/>
+                <circle cx="65" cy="175" r="3" fill="#00d4ff" opacity="0.6"/>
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="title-word">MOLECULE</span>
+                    <span class="title-word">ARCHITECT</span>
+                    <span class="title-word">AI</span>
+                </h1>
+                <p class="hero-subtitle">AI-Powered Sustainable Material Designer</p>
+                <p class="hero-description">
+                    Scientists spend years discovering new materials. Our project demonstrates how Artificial Intelligence can accelerate the idea-generation process by proposing scientifically plausible molecules based on desired properties.
+                </p>
+                <button class="btn-primary btn-large" onclick="smoothScroll('generator')">
+                    Start Demo
+                    <span class="btn-arrow">→</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            <div class="mouse"></div>
+            <span>Scroll to explore</span>
+        </div>
+    </section>
+
+    <!-- About AI Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">The Problem & Solution</h2>
+            
+            <div class="problem-cards">
+                <div class="card-glass">
+                    <div class="card-icon">🌍</div>
+                    <h3>Plastic Pollution</h3>
+                    <p>Millions of tons of plastic waste harm ecosystems globally</p>
+                </div>
+                <div class="card-glass">
+                    <div class="card-icon">⚗️</div>
+                    <h3>Slow Discovery</h3>
+                    <p>Material discovery takes years of manual experimentation</p>
+                </div>
+                <div class="card-glass">
+                    <div class="card-icon">💰</div>
+                    <h3>High Cost</h3>
+                    <p>Research and development requires massive investments</p>
+                </div>
+                <div class="card-glass">
+                    <div class="card-icon">🧠</div>
+                    <h3>Infinite Space</h3>
+                    <p>Trillions of possible molecular combinations exist</p>
+                </div>
+            </div>
+
+            <div class="comparison-flow">
+                <div class="flow-column">
+                    <h3>Traditional Research</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step">Idea</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step">Experiment</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step">Failure</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step">Repeat</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step">Years</div>
+                    </div>
+                </div>
+
+                <div class="flow-divider"></div>
+
+                <div class="flow-column">
+                    <h3>AI-Assisted Research</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step highlight">Requirements</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step highlight">AI Analysis</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step highlight">Candidates</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step">Test</div>
+                        <div class="flow-arrow">↓</div>
+                        <div class="flow-step">Weeks</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="solution-text">
+                Instead of randomly testing millions of combinations, AI narrows the search space and gives scientists better starting points. This accelerates innovation while reducing costs.
+            </p>
+        </div>
+    </section>
+
+    <!-- AI Generator Section -->
+    <section id="generator" class="generator">
+        <div class="container">
+            <h2 class="section-title">AI Molecule Generator</h2>
+
+            <div class="generator-layout">
+                <!-- Left: Input Controls -->
+                <div class="generator-panel">
+                    <div class="prompt-box">
+                        <h3>Custom Prompt (Optional)</h3>
+                        <p style="font-size: 0.9rem; color: #a8b5d1; margin-bottom: 1rem;">Leave blank to use default prompt</p>
+                        <textarea id="customPrompt" placeholder="Enter your own prompt here... or leave blank for default" style="
+                            width: 100%;
+                            height: 80px;
+                            background: rgba(0, 0, 0, 0.3);
+                            border: 1px solid rgba(0, 212, 255, 0.2);
+                            border-radius: 8px;
+                            color: #a8b5d1;
+                            padding: 10px;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.85rem;
+                            resize: vertical;
+                        "></textarea>
+                    </div>
+
+                    <div class="prompt-box">
+                        <h3>Material Requirements</h3>
+                        <p>Design a biodegradable food packaging material that is:</p>
+                        <ul class="requirement-list">
+                            <li>✓ Strong</li>
+                            <li>✓ Flexible</li>
+                            <li>✓ Waterproof</li>
+                            <li>✓ Low Cost</li>
+                        </ul>
+                    </div>
+
+                    <div class="sliders-section">
+                        <h3>Adjust Properties</h3>
+                        
+                        <div class="slider-group">
+                            <label>Strength</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="strength" min="0" max="100" value="75">
+                                <span class="slider-value">75%</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <label>Flexibility</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="flexibility" min="0" max="100" value="60">
+                                <span class="slider-value">60%</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <label>Biodegradability</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="biodegradability" min="0" max="100" value="85">
+                                <span class="slider-value">85%</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <label>Waterproof</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="waterproof" min="0" max="100" value="70">
+                                <span class="slider-value">70%</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <label>Cost Efficiency</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="cost" min="0" max="100" value="80">
+                                <span class="slider-value">80%</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <label>Heat Resistance</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="heat" min="0" max="100" value="50">
+                                <span class="slider-value">50%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary btn-large btn-generate" onclick="generateMolecules()">
+                        <span class="btn-icon">⚡</span>
+                        Generate Molecules
+                    </button>
+                </div>
+
+                <!-- Right: AI Thinking Animation -->
+                <div class="thinking-panel">
+                    <div id="thinkingContainer" class="thinking-container" style="display: none;">
+                        <div class="thinking-title">AI Thinking...</div>
+                        
+                        <div class="console-output">
+                            <div class="console-line" data-delay="0">
+                                <span class="console-status">✓</span>
+                                Connected to Gemini AI
+                            </div>
+                            <div class="console-line" data-delay="1">
+                                <span class="console-status">✓</span>
+                                Parsing user requirements
+                            </div>
+                            <div class="console-line" data-delay="2">
+                                <span class="console-status">✓</span>
+                                Searching chemical patterns
+                            </div>
+                            <div class="console-line" data-delay="3">
+                                <span class="console-status">✓</span>
+                                Selecting functional groups
+                            </div>
+                            <div class="console-line" data-delay="4">
+                                <span class="console-status">✓</span>
+                                Predicting molecular behavior
+                            </div>
+                            <div class="console-line" data-delay="5">
+                                <span class="console-status">✓</span>
+                                Ranking candidate molecules
+                            </div>
+                            <div class="console-line" data-delay="6">
+                                <span class="console-status">✓</span>
+                                Finalizing biodegradable report
+                            </div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="resultsContainer" class="results-container" style="display: none;">
+                        <h3>Generated Molecules</h3>
+                        <div id="moleculeCardsContainer" class="molecule-cards">
+                            <!-- Cards will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div id="emptyState" class="empty-state">
+                        <div class="empty-icon">🧪</div>
+                        <p>Adjust sliders and click <strong>Generate Molecules</strong> to begin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Dashboard -->
+    <section id="results" class="results" style="display: none;">
+        <div class="container">
+            <h2 class="section-title">Results & Analysis</h2>
+
+            <div class="results-layout">
+                <!-- Left: Molecule Viewer -->
+                <div class="viewer-panel">
+                    <h3>3D Molecular Structure</h3>
+                    <div id="viewerContainer" class="viewer-container"></div>
+                    <p class="viewer-note">Interactive 3D visualization • Rotate • Zoom • Pan</p>
+                </div>
+
+                <!-- Middle: Reasoning -->
+                <div class="reasoning-panel">
+                    <h3>AI Design Rationale</h3>
+                    <div id="reasoningText" class="reasoning-content">
+                        <p>Select a molecule to view AI reasoning...</p>
+                    </div>
+                </div>
+
+                <!-- Right: Comparison -->
+                <div class="comparison-panel">
+                    <h3>Property Comparison</h3>
+                    <canvas id="radarChart" class="radar-chart"></canvas>
+                    <div id="comparisonStats" class="comparison-stats"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research & Inspiration -->
+    <section id="research" class="research">
+        <div class="container">
+            <h2 class="section-title">Research Inspiration & Future Scope</h2>
+
+            <div class="inspiration-section">
+                <h3>Learned From Real Materials</h3>
+                <div class="inspiration-cards">
+                    <div class="inspiration-card">
+                        <div class="card-label">PLA</div>
+                        <p>Polylactic Acid</p>
+                        <span class="card-tag">Biodegradable</span>
+                    </div>
+                    <div class="inspiration-card">
+                        <div class="card-label">PHA</div>
+                        <p>Polyhydroxyalkanoates</p>
+                        <span class="card-tag">Sustainable</span>
+                    </div>
+                    <div class="inspiration-card">
+                        <div class="card-label">Chitosan</div>
+                        <p>From Crustacean Shells</p>
+                        <span class="card-tag">Natural</span>
+                    </div>
+                    <div class="inspiration-card">
+                        <div class="card-label">Cellulose</div>
+                        <p>Plant-Based Polymer</p>
+                        <span class="card-tag">Renewable</span>
+                    </div>
+                </div>
+                <div class="inspiration-arrows">
+                    <svg viewBox="0 0 100 20" width="200" height="40">
+                        <line x1="10" y1="10" x2="80" y2="10" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#00d4ff" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                <p class="inspiration-text">
+                    <strong>AI Generated Concept</strong> — The AI learns patterns from existing biodegradable materials and proposes new combinations. These are hypotheses—not confirmed discoveries—but they guide research direction.
+                </p>
+            </div>
+
+            <div class="future-timeline">
+                <h3>Research Roadmap</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot">✓</div>
+                        <div class="timeline-content">
+                            <h4>Molecular Generation</h4>
+                            <p>AI proposes candidates</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">→</div>
+                        <div class="timeline-content">
+                            <h4>Simulate Stability</h4>
+                            <p>Quantum chemistry modeling</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">→</div>
+                        <div class="timeline-content">
+                            <h4>Predict Toxicity</h4>
+                            <p>Safety assessment</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">→</div>
+                        <div class="timeline-content">
+                            <h4>Estimate Properties</h4>
+                            <p>Melting point, degradation</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">→</div>
+                        <div class="timeline-content">
+                            <h4>Lab Synthesis</h4>
+                            <p>Physical validation</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">→</div>
+                        <div class="timeline-content">
+                            <h4>Real-World Testing</h4>
+                            <p>Field deployment</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="closing-message">
+                <p class="message-large">
+                    AI doesn't replace scientists—it helps them generate better ideas faster.
+                </p>
+                <p class="message-secondary">
+                    By combining human expertise with computational intelligence, we can accelerate sustainable innovation.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="team">
+        <div class="container">
+            <h2 class="section-title">Our Team</h2>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">👨‍💻</div>
+                    <h3>AI Development</h3>
+                    <p>Machine learning model design and optimization</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">👩‍🔬</div>
+                    <h3>Chemistry Expertise</h3>
+                    <p>Domain knowledge and molecular validation</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">🎨</div>
+                    <h3>UI/UX Design</h3>
+                    <p>Interactive demo and visualization</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">🌍</div>
+                    <h3>Sustainability</h3>
+                    <p>Environmental impact research</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Molecule Architect AI. Built for sustainable innovation.</p>
+            <p class="footer-note">This is a demo project showcasing AI-assisted material discovery. All generated molecules are hypothetical.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="main.js"></script>
+</body>
+</html>

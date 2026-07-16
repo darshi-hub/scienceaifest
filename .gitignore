@@ -1,0 +1,16 @@
+# Ignore local environment files with API keys
+.env
+.env.local
+.env.*.local
+.DS_Store
+node_modules/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
