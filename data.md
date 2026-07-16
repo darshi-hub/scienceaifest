@@ -18,3 +18,21 @@ DAY 1
 DAY 2
 
 1. https://chatgpt.com/share/6a57ac60-16cc-83ee-ae94-f94c1927ac32 -- PROJECT EVO LAB IDEA-2
+⭐ 5. Project: Invisible World Explorer
+
+Point the camera at:
+
+A leaf
+Water
+Metal
+Skin
+
+The AI overlays what is invisible:
+
+Molecules
+Cells
+DNA
+Crystal structure
+Atoms
+
+Like augmented scientific vision.
