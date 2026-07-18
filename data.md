@@ -1,3 +1,4 @@
+https://lichess.org/u8bELmlN
 DAY 1
 1. AI Plant/Leaf Disease Detector 
 
