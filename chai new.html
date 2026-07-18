@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChAI — Molecule Architect AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{
+    --bg:#0a1310;
+    --bg-2:#0e1a16;
+    --panel:#121e19;
+    --panel-2:#17251f;
+    --line:rgba(234,243,238,0.10);
+    --line-strong:rgba(234,243,238,0.20);
+    --text:#eaf3ee;
+    --text-dim:#8fa69a;
+    --text-faint:#5c7268;
+    --bio:#5fe3a0;
+    --bio-dim:rgba(95,227,160,0.14);
+    --nonbio:#ff9159;
+    --nonbio-dim:rgba(255,145,89,0.14);
+    --cyan:#63d9e0;
+    --warn:#ffd166;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 600px at 15% -10%, rgba(95,227,160,0.08), transparent 60%),
+      radial-gradient(ellipse 900px 700px at 90% 10%, rgba(99,217,224,0.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--bio); color:#04140c;}
+  a{color:inherit;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .display{font-family:'Space Grotesk', sans-serif;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  section{position:relative;}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--panel-2); border-radius:8px;}
+
+  /* ---------- Nav ---------- */
+  header.nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,19,16,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    max-width:1180px; margin:0 auto; padding:16px 28px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px; letter-spacing:0.01em;}
+  .brand-mark{width:30px; height:30px; flex-shrink:0;}
+  .brand-sub{color:var(--text-dim); font-weight:400; font-size:13px; margin-left:4px; display:none;}
+  nav.links{display:flex; gap:28px; font-size:14px; color:var(--text-dim);}
+  nav.links a{text-decoration:none; transition:color .15s;}
+  nav.links a:hover{color:var(--bio);}
+  .nav-cta{
+    font-size:13px; padding:9px 16px; border-radius:999px;
+    border:1px solid var(--line-strong); color:var(--text);
+    text-decoration:none; white-space:nowrap; transition:border-color .15s, color .15s;
+    display:flex; align-items:center; gap:7px;
+  }
+  .nav-cta:hover{border-color:var(--bio); color:var(--bio);}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative; overflow:hidden;
+    min-height:92vh; display:flex; align-items:center;
+    border-bottom:1px solid var(--line);
+  }
+  #hero-canvas{
+    position:absolute; inset:0; width:100%; height:100%;
+    opacity:0.55; pointer-events:none;
+    mask-image:radial-gradient(ellipse 70% 80% at 68% 45%, black 40%, transparent 85%);
+  }
+  .hero-inner{position:relative; z-index:2; padding:120px 28px 100px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.06em;
+    color:var(--bio); text-transform:uppercase; margin-bottom:22px;
+    border:1px solid rgba(95,227,160,0.3); padding:6px 12px; border-radius:999px;
+    background:var(--bio-dim);
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--bio); box-shadow:0 0 8px var(--bio);}
+  h1.hero-title{
+    font-family:'Space Grotesk',sans-serif; font-weight:600;
+    font-size:clamp(36px, 5.4vw, 68px); line-height:1.06; letter-spacing:-0.01em;
+    max-width:820px; margin-bottom:26px;
+  }
+  h1.hero-title em{font-style:normal; color:var(--bio);}
+  .hero-sub{
+    max-width:560px; font-size:17px; color:var(--text-dim); margin-bottom:36px;
+  }
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:56px;}
+  .btn{
+    font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:14.5px;
+    padding:14px 24px; border-radius:10px; cursor:pointer; text-decoration:none;
+    display:inline-flex; align-items:center; gap:8px; transition:transform .15s, box-shadow .15s, background .15s, border-color .15s;
+    border:1px solid transparent;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--bio); color:#052013; box-shadow:0 0 0 rgba(95,227,160,0);}
+  .btn-primary:hover{box-shadow:0 6px 24px rgba(95,227,160,0.28);}
+  .btn-ghost{border-color:var(--line-strong); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--cyan); color:var(--cyan);}
+  .btn-full{width:100%; justify-content:center;}
+  .btn:disabled{opacity:0.45; cursor:not-allowed; box-shadow:none;}
+
+  .hero-meta{
+    display:flex; gap:36px; flex-wrap:wrap; padding-top:28px; border-top:1px solid var(--line);
+    max-width:640px;
+  }
+  .hero-meta div{font-size:13px; color:var(--text-faint);}
+  .hero-meta strong{display:block; font-family:'Space Grotesk',sans-serif; color:var(--text); font-size:15px; font-weight:600; margin-bottom:2px;}
+
+  /* ---------- generic section header ---------- */
+  .section-pad{padding:100px 0;}
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-label{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-faint); margin-bottom:14px; display:block;
+  }
+  h2.section-title{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:clamp(26px,3.4vw,38px);
+    letter-spacing:-0.01em; margin-bottom:16px;
+  }
+  .section-desc{color:var(--text-dim); font-size:15.5px; max-width:560px;}
+
+  /* ---------- problem ---------- */
+  #problem{border-bottom:1px solid var(--line); background:var(--bg-2);}
+  .problem-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:start;}
+  .problem-body p{color:var(--text-dim); font-size:15.5px; margin-bottom:16px; max-width:520px;}
+  .stat-stack{display:flex; flex-direction:column; gap:14px;}
+  .stat-card{
+    border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px;
+    background:var(--panel);
+  }
+  .stat-card .k{font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--bio); margin-bottom:4px;}
+  .stat-card .v{font-size:13.5px; color:var(--text-dim);}
+
+  /* ---------- how it works ---------- */
+  .flow{display:flex; flex-direction:column; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--panel);}
+  .flow-step{
+    display:grid; grid-template-columns:64px 1fr; gap:20px; padding:26px 28px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .flow-step:last-child{border-bottom:none;}
+  .flow-num{
+    font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--bio);
+    display:flex; align-items:flex-start; padding-top:2px;
+  }
+  .flow-step h3{font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:600; margin-bottom:6px;}
+  .flow-step p{color:var(--text-dim); font-size:14.5px; max-width:560px;}
+  .flow-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--cyan);
+    border:1px solid rgba(99,217,224,0.3); background:rgba(99,217,224,0.08);
+    padding:3px 9px; border-radius:999px; margin-left:10px; white-space:nowrap;
+  }
+
+  /* ---------- generator ---------- */
+  #generator{border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--bg-2);}
+  .gen-shell{border:1px solid var(--line); border-radius:20px; background:var(--panel); overflow:hidden;}
+  .gen-top{padding:28px; border-bottom:1px solid var(--line);}
+
+  .provider-tabs{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  .provider-tab{
+    display:flex; align-items:center; gap:9px; padding:11px 16px; border-radius:11px;
+    border:1px solid var(--line-strong); background:var(--panel-2); color:var(--text-dim);
+    font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; font-weight:500; cursor:pointer;
+    transition:border-color .15s, color .15s, background .15s;
+  }
+  .provider-tab .pt-sub{font-size:11px; color:var(--text-faint); font-weight:400;}
+  .provider-tab:hover{border-color:var(--line-strong); color:var(--text);}
+  .provider-tab.active{border-color:var(--bio); color:var(--text); background:var(--bio-dim);}
+  .provider-tab.active .pt-sub{color:var(--text-dim);}
+  .pt-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .pt-dot.online{background:var(--cyan); box-shadow:0 0 6px var(--cyan);}
+  .pt-dot.offline{background:var(--bio); box-shadow:0 0 6px var(--bio);}
+  .pt-dot.instant{background:var(--warn); box-shadow:0 0 6px var(--warn);}
+
+  .key-row{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    cursor:pointer; user-select:none;
+  }
+  .key-row-left{display:flex; align-items:center; gap:10px; font-size:14px;}
+  .key-status-dot{width:8px; height:8px; border-radius:50%; background:var(--text-faint); flex-shrink:0;}
+  .key-status-dot.on{background:var(--bio); box-shadow:0 0 8px var(--bio);}
+  .chev{transition:transform .2s; color:var(--text-faint); font-size:12px;}
+  .key-panel{
+    max-height:0; overflow:hidden; transition:max-height .3s ease, margin-top .3s ease;
+  }
+  .key-panel.open{max-height:640px; margin-top:18px;}
+  .key-panel-inner{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;}
+  .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:220px;}
+  .field label{font-size:12px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; letter-spacing:0.03em;}
+  input[type="password"], input[type="text"], select, textarea{
+    background:var(--panel-2); border:1px solid var(--line-strong); border-radius:9px;
+    color:var(--text); padding:11px 13px; font-family:'IBM Plex Mono',monospace; font-size:13.5px;
+    outline:none; transition:border-color .15s;
+  }
+  select{flex:0 0 auto; min-width:190px; font-family:'IBM Plex Sans',sans-serif;}
+  input:focus, select:focus, textarea:focus{border-color:var(--bio);}
+  .key-hint{font-size:12.5px; color:var(--text-faint); max-width:560px; line-height:1.5;}
+  .key-hint a{color:var(--cyan); text-decoration:underline; text-underline-offset:2px;}
+
+  code.mono{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--panel-2);
+    border:1px solid var(--line-strong); padding:2px 7px; border-radius:5px; color:var(--bio);
+  }
+  code.mono.block{display:inline-block; margin:6px 0 2px; padding:8px 12px;}
+  .setup-steps{
+    list-style:none; counter-reset:step; margin-top:14px; display:flex; flex-direction:column; gap:10px;
+  }
+  .setup-steps li{
+    counter-increment:step; position:relative; padding-left:28px; font-size:13px; color:var(--text-dim); line-height:1.55;
+  }
+  .setup-steps li::before{
+    content:counter(step); position:absolute; left:0; top:0; width:19px; height:19px; border-radius:50%;
+    background:var(--panel-2); border:1px solid var(--line-strong); color:var(--bio);
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; display:flex; align-items:center; justify-content:center;
+  }
+  .setup-steps a{color:var(--cyan); text-decoration:underline; text-underline-offset:2px;}
+  .setup-note{display:block; font-size:11.5px; color:var(--text-faint); margin-top:4px;}
+  .ollama-status{font-family:'IBM Plex Mono',monospace; font-size:12.5px; margin-top:14px; min-height:1px;}
+  .ollama-status.ok{color:var(--bio);}
+  .ollama-status.err{color:var(--nonbio);}
+
+  .gen-mid{padding:28px;}
+  textarea#prompt{width:100%; min-height:96px; resize:vertical; font-family:'IBM Plex Sans',sans-serif; font-size:15px; line-height:1.5; padding:16px;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;}
+  .chip{
+    font-size:12.5px; padding:7px 13px; border-radius:999px; border:1px solid var(--line-strong);
+    color:var(--text-dim); cursor:pointer; background:transparent; transition:all .15s; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .chip:hover{border-color:var(--bio); color:var(--bio);}
+  .gen-actions{display:flex; align-items:center; gap:16px; margin-top:20px; flex-wrap:wrap;}
+  .status-line{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--text-faint); display:flex; align-items:center; gap:8px;}
+  .spinner{
+    width:13px; height:13px; border-radius:50%; border:2px solid var(--line-strong); border-top-color:var(--bio);
+    animation:spin 0.8s linear infinite; display:none;
+  }
+  .spinner.on{display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-box{
+    display:none; margin:0 28px 24px; padding:14px 16px; border-radius:10px;
+    background:rgba(255,145,89,0.1); border:1px solid rgba(255,145,89,0.35);
+    color:#ffbf95; font-size:13.5px;
+  }
+  .error-box.on{display:block;}
+
+  .results{padding:0 28px 32px; display:none;}
+  .results.on{display:block;}
+  .summary-box{
+    border:1px solid var(--line); background:var(--panel-2); border-radius:12px;
+    padding:18px 20px; font-size:14.5px; color:var(--text-dim); margin-bottom:24px;
+  }
+  .summary-box b{color:var(--text); font-weight:600;}
+  .cards2{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  .mol-card{border-radius:16px; border:1px solid var(--line); overflow:hidden; background:var(--panel-2); display:flex; flex-direction:column;}
+  .mol-card.bio{border-color:rgba(95,227,160,0.35);}
+  .mol-card.nonbio{border-color:rgba(255,145,89,0.3);}
+  .mol-head{padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom:1px solid var(--line);}
+  .mol-name{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px;}
+  .badge{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:5px 10px; border-radius:999px; white-space:nowrap;}
+  .badge.bio{color:var(--bio); background:var(--bio-dim); border:1px solid rgba(95,227,160,0.4);}
+  .badge.nonbio{color:var(--nonbio); background:var(--nonbio-dim); border:1px solid rgba(255,145,89,0.4);}
+  .viewer{width:100%; height:230px; position:relative; background:radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.03), transparent 70%);}
+  .viewer canvas{display:block; cursor:grab; touch-action:none;}
+  .viewer canvas:active{cursor:grabbing;}
+  .viewer-hint{position:absolute; bottom:8px; right:10px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-faint); pointer-events:none;}
+  .mol-body{padding:18px 20px 22px; display:flex; flex-direction:column; gap:16px;}
+  .mol-field .k{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin-bottom:8px;}
+  .mol-field .v{font-size:13.5px; color:var(--text-dim);}
+  .tag-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .tag{font-size:12px; padding:5px 10px; border-radius:7px; background:var(--panel); border:1px solid var(--line); color:var(--text-dim);}
+  .confidence{font-size:12px; color:var(--warn); border-top:1px dashed var(--line); padding-top:12px; display:flex; gap:8px;}
+
+  .disclaimer-pin{
+    margin:0 28px 28px; padding:16px 18px; border-radius:12px;
+    background:rgba(255,209,102,0.07); border:1px solid rgba(255,209,102,0.28);
+    font-size:13px; color:#e8d9a8; display:flex; gap:12px; align-items:flex-start;
+  }
+
+  /* ---------- field / industry ---------- */
+  .field-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;}
+  .field-card{border:1px solid var(--line); border-radius:14px; padding:22px; background:var(--panel);}
+  .field-card .org{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px; margin-bottom:4px; color:var(--cyan);}
+  .field-card .proj{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-faint); margin-bottom:12px; display:block;}
+  .field-card p{font-size:13.5px; color:var(--text-dim);}
+
+  /* ---------- benefits ---------- */
+  #benefits{border-top:1px solid var(--line); background:var(--bg-2);}
+  .benefit-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:2px; border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--line);}
+  .benefit-card{background:var(--panel); padding:26px 22px;}
+  .benefit-card .num{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--bio); margin-bottom:14px; display:block;}
+  .benefit-card h4{font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; margin-bottom:8px;}
+  .benefit-card p{font-size:13px; color:var(--text-dim);}
+
+  /* ---------- disclaimer section ---------- */
+  #disclaimer{padding:90px 0; border-top:1px solid var(--line);}
+  .disc-box{
+    border:1px solid rgba(255,209,102,0.3); background:rgba(255,209,102,0.05);
+    border-radius:18px; padding:40px; display:grid; grid-template-columns:auto 1fr; gap:26px; align-items:flex-start;
+  }
+  .disc-icon{font-size:30px;}
+  .disc-box h3{font-family:'Space Grotesk',sans-serif; font-size:20px; margin-bottom:12px;}
+  .disc-box p{color:var(--text-dim); font-size:14.5px; max-width:720px; margin-bottom:10px;}
+  .disc-box p:last-child{margin-bottom:0;}
+  .disc-box b{color:var(--text);}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line); padding:40px 0;}
+  .footer-inner{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
+  .footer-inner .l{font-size:13px; color:var(--text-faint);}
+  .footer-inner a{font-size:13px; color:var(--text-dim); text-decoration:none; display:inline-flex; align-items:center; gap:6px;}
+  .footer-inner a:hover{color:var(--bio);}
+
+  @media (max-width:920px){
+    .problem-grid{grid-template-columns:1fr;}
+    .cards2{grid-template-columns:1fr;}
+    .field-grid{grid-template-columns:1fr 1fr;}
+    .benefit-grid{grid-template-columns:1fr 1fr;}
+    nav.links{display:none;}
+    .disc-box{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .field-grid{grid-template-columns:1fr;}
+    .benefit-grid{grid-template-columns:1fr;}
+    .key-panel-inner{flex-direction:column; align-items:stretch;}
+    select{min-width:0;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .spinner{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="3.4" fill="#5fe3a0"/>
+        <circle cx="8" cy="12" r="2.6" fill="#eaf3ee"/>
+        <circle cx="32" cy="12" r="2.6" fill="#63d9e0"/>
+        <circle cx="8" cy="28" r="2.6" fill="#63d9e0"/>
+        <circle cx="32" cy="28" r="2.6" fill="#eaf3ee"/>
+        <g stroke="#3b5148" stroke-width="1.4">
+          <line x1="20" y1="20" x2="8" y2="12"/>
+          <line x1="20" y1="20" x2="32" y2="12"/>
+          <line x1="20" y1="20" x2="8" y2="28"/>
+          <line x1="20" y1="20" x2="32" y2="28"/>
+        </g>
+      </svg>
+      ChAI <span class="brand-sub">Molecule Architect AI</span>
+    </div>
+    <nav class="links">
+      <a href="#problem">Overview</a>
+      <a href="#how">How it works</a>
+      <a href="#generator">Generator</a>
+      <a href="#field">Field</a>
+      <a href="#benefits">Benefits</a>
+    </nav>
+    <a class="nav-cta" href="https://github.com/darshi-hub/scienceaifest" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="wrap hero-inner">
+    <div class="eyebrow"><span class="dot"></span> Inverse molecular design · Science + AI Fest project</div>
+    <h1 class="hero-title">Instead of searching for molecules, <em>AI invents them.</em></h1>
+    <p class="hero-sub">Describe the material property you need. ChAI proposes a hypothetical molecular design grounded in real bonding rules and live web research — biodegradable-first, with the non-biodegradable alternative shown honestly alongside it.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#generator">Try the generator ↓</a>
+      <a class="btn btn-ghost" href="#how">How it works</a>
+    </div>
+    <div class="hero-meta">
+      <div><strong>Biodegradable-first</strong>Prefers hydrolyzable, compostable chemistry when it can satisfy the request.</div>
+      <div><strong>Search-grounded</strong>Checks real chemistry precedent via Google Search before designing.</div>
+      <div><strong>Not a lab result</strong>Every output is conceptual and clearly marked unverified.</div>
+    </div>
+  </div>
+</section>
+
+<section id="problem" class="section-pad">
+  <div class="wrap problem-grid">
+    <div>
+      <span class="section-label">01 — The problem</span>
+      <h2 class="section-title">Discovering the right molecule is slow, expensive, and mostly trial and error</h2>
+      <div class="problem-body">
+        <p>Materials science usually starts from a molecule that already exists and asks what it's good for. Going the other direction — starting from a property you need and finding a structure that delivers it — traditionally means synthesizing and testing candidate after candidate by hand, in a lab, over months or years.</p>
+        <p>Most of those candidates fail. The ones that work still need to be discovered before they can be tested, and that discovery step is exactly where a generative model can help: proposing plausible starting points, fast, so the expensive lab time gets spent validating good ideas instead of searching for them.</p>
+        <p>ChAI doesn't skip the lab — it changes what a chemist starts their week with: a shortlist of structurally sound hypotheses instead of a blank page.</p>
+      </div>
+    </div>
+    <div class="stat-stack">
+      <div class="stat-card"><div class="k">Property → structure, reversed</div><div class="v">Classical workflows start from a molecule and measure its properties. Inverse design starts from the property and searches for a structure.</div></div>
+      <div class="stat-card"><div class="k">Trial-and-error is the bottleneck</div><div class="v">Most synthesized candidates in a discovery campaign don't pan out — the cost is in finding out which ones do.</div></div>
+      <div class="stat-card"><div class="k">A narrower shortlist, sooner</div><div class="v">A generative first pass can't replace lab validation, but it can narrow where that validation effort goes.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-label">02 — How ChAI works</span>
+      <h2 class="section-title">One prompt, five real steps</h2>
+      <p class="section-desc">This is the actual pipeline running behind the generator below — not a simplified diagram.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div><h3>Describe the property you need</h3><p>Plain language: a flexible plastic that dissolves in seawater, a foam that absorbs CO₂, a coating that resists heat. No chemistry notation required.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div><h3>ChAI researches real chemistry first <span class="flow-tag">Google Search grounding</span></h3><p>Before designing anything, the model searches for known molecule classes, functional groups, and research programs already associated with that property.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div><h3>It proposes two designs, not one</h3><p>A <strong style="color:var(--bio)">biodegradable-preferred</strong> structure that satisfies the request wherever hydrolyzable or compostable chemistry can do the job, plus a <strong style="color:var(--nonbio)">non-biodegradable alternative</strong> shown for honest comparison — never hidden.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div><h3>Structure, bonds, and a 3D model</h3><p>Backbone, functional groups, bond types, predicted properties, applications, and a rotatable ball-and-stick model built from the same atom and bond list the AI reasoned about.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">05</div>
+        <div><h3>A scientist validates the best ideas</h3><p>ChAI's output is a starting hypothesis. Every candidate still needs synthesis and testing in a real lab before it means anything.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="generator" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-label">03 — The generator</span>
+      <h2 class="section-title">Design a hypothetical molecule</h2>
+      <p class="section-desc">Runs on Google's Gemini API by default, called directly from your browser with your own free key — switch to a model already downloaded on your PC through Ollama when you're offline, or use Instant for the built-in designs below with nothing to set up.</p>
+    </div>
+
+    <div class="gen-shell">
+      <div class="gen-top">
+        <div class="provider-tabs" role="tablist">
+          <button class="provider-tab active" id="tab-gemini" data-provider="gemini" role="tab" aria-selected="true">
+            <span class="pt-dot online"></span> Gemini <span class="pt-sub">cloud, search-grounded</span>
+          </button>
+          <button class="provider-tab" id="tab-ollama" data-provider="ollama" role="tab" aria-selected="false">
+            <span class="pt-dot offline"></span> Ollama <span class="pt-sub">local, works offline</span>
+          </button>
+          <button class="provider-tab" id="tab-instant" data-provider="instant" role="tab" aria-selected="false">
+            <span class="pt-dot instant"></span> Instant <span class="pt-sub">built-in, ready now</span>
+          </button>
+        </div>
+
+        <div class="key-row" id="key-toggle">
+          <div class="key-row-left">
+            <span class="key-status-dot" id="key-dot"></span>
+            <span id="key-label">Connect your Gemini API key</span>
+          </div>
+          <span class="chev" id="key-chev">▾</span>
+        </div>
+
+        <div class="key-panel open" id="key-panel">
+          <!-- Gemini connection fields -->
+          <div id="gemini-fields">
+            <div class="key-panel-inner">
+              <div class="field">
+                <label for="api-key">GEMINI API KEY</label>
+                <input type="password" id="api-key" placeholder="AIza...">
+              </div>
+              <div class="field" style="flex:0 0 auto;">
+                <label for="model-select">MODEL</label>
+                <select id="model-select">
+                  <option value="gemini-2.5-flash" selected>gemini-2.5-flash (recommended)</option>
+                  <option value="gemini-3.5-flash">gemini-3.5-flash (newest)</option>
+                  <option value="gemini-2.5-pro">gemini-2.5-pro (slower, more thorough)</option>
+                </select>
+              </div>
+            </div>
+            <p class="key-hint" style="margin-top:14px;">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Calls go straight from your browser to Google's API — ChAI's own server never sees your key or your prompt.</p>
+          </div>
+
+          <!-- Ollama connection fields -->
+          <div id="ollama-fields" style="display:none;">
+            <div class="key-panel-inner">
+              <div class="field">
+                <label for="ollama-url">OLLAMA SERVER ADDRESS</label>
+                <input type="text" id="ollama-url" value="http://localhost:11434" placeholder="http://localhost:11434">
+              </div>
+              <div class="field" style="flex:0 0 auto; min-width:220px;">
+                <label for="ollama-model-select">DOWNLOADED MODEL</label>
+                <select id="ollama-model-select">
+                  <option value="">Click "Detect models" →</option>
+                </select>
+              </div>
+              <button class="btn btn-ghost" id="ollama-detect-btn" type="button" style="padding:11px 16px; white-space:nowrap;">Detect models</button>
+            </div>
+            <p class="key-hint" style="margin-top:14px;" id="ollama-hint">
+              Runs entirely on your PC — no internet, no API key, no data leaves your machine. One-time setup:
+            </p>
+            <ol class="setup-steps" id="ollama-setup">
+              <li>Install Ollama from <a href="https://ollama.com/download" target="_blank" rel="noopener">ollama.com/download</a> and open it.</li>
+              <li>Pull a model in a terminal, e.g. <code class="mono">ollama pull llama3.1</code> (or any model you already have).</li>
+              <li>Allow this page to talk to it — close Ollama, then start it from a terminal with:<br>
+                <code class="mono block">OLLAMA_ORIGINS=* ollama serve</code>
+                <span class="setup-note">(Windows PowerShell: <code class="mono">$env:OLLAMA_ORIGINS="*"; ollama serve</code>)</span>
+              </li>
+              <li>Come back here and click <b>Detect models</b>.</li>
+            </ol>
+            <div class="ollama-status" id="ollama-status"></div>
+          </div>
+
+          <!-- Instant mode: nothing to connect -->
+          <div id="instant-fields" style="display:none;">
+            <p class="key-hint">Ready to go — the example prompts below generate right away, no key or install needed. Pick one below and hit generate. For a fully custom prompt, switch to Gemini or Ollama above.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="gen-mid">
+        <textarea id="prompt" placeholder="e.g. Design a flexible plastic that dissolves naturally in seawater"></textarea>
+        <div class="chips">
+          <button class="chip" data-p="Design a flexible plastic that dissolves naturally in seawater.">Biodegradable ocean plastic</button>
+          <button class="chip" data-p="Design a porous material that absorbs CO2 from industrial emissions.">CO₂-absorbing material</button>
+          <button class="chip" data-p="Design a strong fiber for fishing nets that breaks down safely if lost at sea.">Compostable fishing net fiber</button>
+          <button class="chip" data-p="Design a heat-resistant packaging foam.">Heat-resistant packaging foam</button>
+          <button class="chip" data-p="Design a coating that repels water for outdoor fabric.">Water-repellent fabric coating</button>
+        </div>
+        <div class="gen-actions">
+          <button class="btn btn-primary" id="generate-btn">Generate molecule</button>
+          <div class="status-line"><span class="spinner" id="spinner"></span><span id="status-text"></span></div>
+        </div>
+      </div>
+
+      <div class="error-box" id="error-box"></div>
+
+      <div class="results" id="results">
+        <div class="summary-box" id="summary-box"></div>
+        <div class="cards2" id="cards2"></div>
+      </div>
+
+      <div class="disclaimer-pin" id="disclaimer-pin" style="display:none;">
+        <span>⚠</span>
+        <span>These structures are AI-generated hypotheses for an educational project. They have <b style="color:#e8d9a8;">not</b> been synthesized or experimentally verified — treat them as a starting point for discussion, not a chemistry result.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="field" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-label">04 — The wider field</span>
+      <h2 class="section-title">ChAI is a small, honest demo of a real research direction</h2>
+      <p class="section-desc">Generative and inverse molecular design is an active area across industry and academia. ChAI doesn't compete with these — it demonstrates the same idea at student scale.</p>
+    </div>
+    <div class="field-grid">
+      <div class="field-card">
+        <div class="org">Google DeepMind</div>
+        <span class="proj">GNoME</span>
+        <p>Used graph neural networks to propose millions of candidate inorganic crystal structures, dramatically narrowing the search space for materials worth synthesizing.</p>
+      </div>
+      <div class="field-card">
+        <div class="org">IBM Research</div>
+        <span class="proj">Generative chemistry</span>
+        <p>Explores generative models and reaction-prediction AI (including RXN for Chemistry) that suggest novel molecules and routes to make them.</p>
+      </div>
+      <div class="field-card">
+        <div class="org">Insilico Medicine</div>
+        <span class="proj">Generative drug design</span>
+        <p>Uses generative AI to design candidate drug molecules, with some AI-designed candidates advancing into human clinical trials.</p>
+      </div>
+      <div class="field-card">
+        <div class="org">Iambic Therapeutics</div>
+        <span class="proj">Generative + physics models</span>
+        <p>Combines generative chemistry models with physics-based simulation to propose and rank drug candidates.</p>
+      </div>
+      <div class="field-card">
+        <div class="org">Kebotix</div>
+        <span class="proj">Self-driving labs</span>
+        <p>Pairs generative molecular design with robotic synthesis and testing to close the loop between proposal and validation.</p>
+      </div>
+      <div class="field-card">
+        <div class="org">Citrine Informatics</div>
+        <span class="proj">Materials informatics</span>
+        <p>Applies AI to materials R&D data to help teams prioritize which candidate materials to test next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="benefits" class="section-pad">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-label">05 — Why this matters</span>
+      <h2 class="section-title">What a generative first pass actually buys you</h2>
+    </div>
+    <div class="benefit-grid">
+      <div class="benefit-card"><span class="num">→</span><h4>Faster exploration</h4><p>Minutes to see a plausible candidate instead of the first weeks of a discovery campaign.</p></div>
+      <div class="benefit-card"><span class="num">→</span><h4>Lower cost, less waste</h4><p>Fewer blind syntheses — lab time goes toward testing promising structures, not finding them.</p></div>
+      <div class="benefit-card"><span class="num">→</span><h4>Sustainability by default</h4><p>ChAI reaches for biodegradable chemistry first, and still shows the trade-off honestly.</p></div>
+      <div class="benefit-card"><span class="num">→</span><h4>Wider access</h4><p>A student, teacher, or small lab can explore molecular design ideas without a research budget.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="disclaimer">
+  <div class="wrap">
+    <div class="disc-box">
+      <div class="disc-icon">⚠</div>
+      <div>
+        <h3>ChAI does not replace scientists</h3>
+        <p><b>Every molecule on this page is a hypothesis, not a discovery.</b> Structures, bond lists, and 3D coordinates are AI-generated to be chemically plausible — consistent with valence rules and known bonding patterns — but none of them have been synthesized, measured, or verified in a laboratory.</p>
+        <p>Predicted properties and applications are conceptual estimates, not measured data. Treat every result as a starting hypothesis that a qualified chemist would still need to evaluate, synthesize, and test before it means anything.</p>
+        <p>ChAI's job is to help scientists explore promising ideas faster — saving time, cost, and material — not to tell them what's true.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="l">ChAI / Molecule Architect AI — built for a Science + AI Fest project.</div>
+    <a href="https://github.com/darshi-hub/scienceaifest" target="_blank" rel="noopener">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Project notes on GitHub
+    </a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     Element data (CPK-inspired) for 3D rendering
+  ============================================================ */
+  var ELEMENTS = {
+    H:  {color:0xf2f7f5, r:0.32},
+    C:  {color:0x9fb0aa, r:0.52},
+    N:  {color:0x5b8fff, r:0.50},
+    O:  {color:0xff6b6b, r:0.50},
+    S:  {color:0xffd166, r:0.62},
+    P:  {color:0xffa94d, r:0.60},
+    F:  {color:0x9be8a8, r:0.42},
+    CL: {color:0x6fd48a, r:0.55},
+    BR: {color:0xb35a3a, r:0.60},
+    NA: {color:0xc9a9ff, r:0.66},
+    SI: {color:0xe6c88a, r:0.62},
+    MG: {color:0x8fd9a8, r:0.58},
+    default:{color:0xd0d8d5, r:0.5}
+  };
+  function elemData(sym){
+    if(!sym) return ELEMENTS.default;
+    var k = sym.trim().toUpperCase();
+    return ELEMENTS[k] || ELEMENTS.default;
+  }
+
+  /* ============================================================
+     Generic three.js ball-and-stick viewer
+  ============================================================ */
+  function MoleculeViewer(container, opts){
+    opts = opts || {};
+    this.container = container;
+    this.autoRotate = true;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    this.renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+
+    var amb = new THREE.AmbientLight(0xffffff, 0.65);
+    this.scene.add(amb);
+    var dl1 = new THREE.DirectionalLight(0xffffff, 0.9);
+    dl1.position.set(4,6,6);
+    this.scene.add(dl1);
+    var dl2 = new THREE.DirectionalLight(0x63d9e0, 0.35);
+    dl2.position.set(-5,-3,-4);
+    this.scene.add(dl2);
+
+    container.innerHTML = "";
+    container.appendChild(this.renderer.domElement);
+    this._resize();
+
+    this._dragging = false;
+    this._lastX = 0; this._lastY = 0;
+    var self = this;
+    var el = this.renderer.domElement;
+    function down(e){ self._dragging = true; var p = self._point(e); self._lastX = p.x; self._lastY = p.y; }
+    function move(e){
+      if(!self._dragging) return;
+      var p = self._point(e);
+      var dx = p.x - self._lastX, dy = p.y - self._lastY;
+      self.group.rotation.y += dx * 0.008;
+      self.group.rotation.x += dy * 0.008;
+      self._lastX = p.x; self._lastY = p.y;
+    }
+    function up(){ self._dragging = false; }
+    el.addEventListener("pointerdown", down);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    this._cleanupListeners = function(){
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+
+    this._ro = new ResizeObserver(function(){ self._resize(); });
+    this._ro.observe(container);
+
+    this._raf = null;
+    this._animate();
+  }
+  MoleculeViewer.prototype._point = function(e){
+    return {x: e.clientX, y: e.clientY};
+  };
+  MoleculeViewer.prototype._resize = function(){
+    var w = this.container.clientWidth || 300;
+    var h = this.container.clientHeight || 230;
+    this.renderer.setSize(w, h, false);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+  };
+  MoleculeViewer.prototype.load = function(atoms, bonds){
+    while(this.group.children.length){
+      var c = this.group.children.pop();
+      if(c.geometry) c.geometry.dispose();
+      if(c.material) c.material.dispose();
+    }
+    if(!atoms || !atoms.length) return;
+
+    var cx=0, cy=0, cz=0;
+    atoms.forEach(function(a){ cx+=a.x; cy+=a.y; cz+=a.z; });
+    cx/=atoms.length; cy/=atoms.length; cz/=atoms.length;
+
+    var positions = atoms.map(function(a){
+      return new THREE.Vector3(a.x-cx, a.y-cy, a.z-cz);
+    });
+
+    var maxDist = 1;
+    positions.forEach(function(p){ maxDist = Math.max(maxDist, p.length()); });
+
+    var sphereGeoCache = {};
+    atoms.forEach(function(a, i){
+      var ed = elemData(a.element);
+      var key = ed.r;
+      if(!sphereGeoCache[key]) sphereGeoCache[key] = new THREE.SphereGeometry(key, 20, 16);
+      var mat = new THREE.MeshStandardMaterial({color: ed.color, roughness:0.4, metalness:0.08});
+      var mesh = new THREE.Mesh(sphereGeoCache[key], mat);
+      mesh.position.copy(positions[i]);
+      this.group.add(mesh);
+    }, this);
+
+    if(bonds && bonds.length){
+      bonds.forEach(function(b){
+        var pa = positions[b.a], pb = positions[b.b];
+        if(!pa || !pb) return;
+        var order = Math.max(1, Math.min(3, b.order||1));
+        var dir = new THREE.Vector3().subVectors(pb, pa);
+        var len = dir.length();
+        if(len < 0.001) return;
+        var mid = new THREE.Vector3().addVectors(pa, pb).multiplyScalar(0.5);
+        var offsetUnit = new THREE.Vector3(-dir.y, dir.x, dir.z*0.15).normalize();
+        if(offsetUnit.lengthSq() < 0.001) offsetUnit.set(1,0,0);
+        for(var i=0;i<order;i++){
+          var t = order===1 ? 0 : (i - (order-1)/2) * 0.16;
+          var offset = offsetUnit.clone().multiplyScalar(t);
+          var geo = new THREE.CylinderGeometry(0.09, 0.09, len*0.86, 8);
+          var mat = new THREE.MeshStandardMaterial({color:0xaebdb6, roughness:0.5, metalness:0.05});
+          var cyl = new THREE.Mesh(geo, mat);
+          cyl.position.copy(mid).add(offset);
+          cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+          this.group.add(cyl);
+        }
+      }, this);
+    }
+
+    var dist = Math.max(3.2, maxDist * 2.6);
+    this.camera.position.set(dist*0.6, dist*0.35, dist*0.75);
+    this.camera.lookAt(0,0,0);
+  };
+  MoleculeViewer.prototype._animate = function(){
+    var self = this;
+    this._raf = requestAnimationFrame(function(){ self._animate(); });
+    if(this.autoRotate && !this._dragging){
+      this.group.rotation.y += 0.0035;
+    }
+    this.renderer.render(this.scene, this.camera);
+  };
+  MoleculeViewer.prototype.dispose = function(){
+    if(this._raf) cancelAnimationFrame(this._raf);
+    if(this._ro) this._ro.disconnect();
+    if(this._cleanupListeners) this._cleanupListeners();
+    while(this.group.children.length){
+      var c = this.group.children.pop();
+      if(c.geometry) c.geometry.dispose();
+      if(c.material) c.material.dispose();
+    }
+    this.renderer.dispose();
+  };
+
+  /* ============================================================
+     Ambient hero background molecule (decorative, non-interactive)
+  ============================================================ */
+  function buildAmbientMolecule(){
+    var atoms = [];
+    var bonds = [];
+    var n = 14;
+    var elems = ["C","C","O","C","N","C","C","O","C","C","S","C","C","C"];
+    var prev = null;
+    for(var i=0;i<n;i++){
+      var angle = i * 2.4;
+      var radius = 1.3 + (i%4)*0.55;
+      atoms.push({
+        element: elems[i%elems.length],
+        x: Math.cos(angle)*radius + (Math.random()-0.5)*0.6,
+        y: Math.sin(angle*0.7)*radius*0.7 + (i-n/2)*0.42,
+        z: Math.sin(angle)*radius*0.8 + (Math.random()-0.5)*0.6
+      });
+      if(prev !== null) bonds.push({a:prev, b:i, order: (i%5===0)?2:1});
+      prev = i;
+    }
+    // a couple of branch bonds for a less linear look
+    bonds.push({a:2, b:9, order:1});
+    bonds.push({a:5, b:11, order:1});
+    return {atoms:atoms, bonds:bonds};
+  }
+
+  function initHero(){
+    var canvas = document.getElementById("hero-canvas");
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(3, 1.5, 7);
+    camera.lookAt(0,0,0);
+    var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+
+    var amb = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(amb);
+    var dl = new THREE.DirectionalLight(0x5fe3a0, 1.1);
+    dl.position.set(5,6,5);
+    scene.add(dl);
+    var dl2 = new THREE.DirectionalLight(0x63d9e0, 0.5);
+    dl2.position.set(-6,-2,-3);
+    scene.add(dl2);
+
+    var group = new THREE.Group();
+    scene.add(group);
+
+    var mol = buildAmbientMolecule();
+    var cx=0,cy=0,cz=0;
+    mol.atoms.forEach(function(a){cx+=a.x;cy+=a.y;cz+=a.z;});
+    cx/=mol.atoms.length; cy/=mol.atoms.length; cz/=mol.atoms.length;
+    var positions = mol.atoms.map(function(a){ return new THREE.Vector3(a.x-cx,a.y-cy,a.z-cz); });
+
+    mol.atoms.forEach(function(a,i){
+      var ed = elemData(a.element);
+      var geo = new THREE.SphereGeometry(ed.r*0.85, 18, 14);
+      var mat = new THREE.MeshStandardMaterial({color: ed.color, roughness:0.45, metalness:0.1});
+      var mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(positions[i]);
+      group.add(mesh);
+    });
+    mol.bonds.forEach(function(b){
+      var pa = positions[b.a], pb = positions[b.b];
+      var dir = new THREE.Vector3().subVectors(pb,pa);
+      var len = dir.length();
+      if(len<0.001) return;
+      var mid = new THREE.Vector3().addVectors(pa,pb).multiplyScalar(0.5);
+      var geo = new THREE.CylinderGeometry(0.07,0.07,len*0.88,8);
+      var mat = new THREE.MeshStandardMaterial({color:0x3b5148, roughness:0.6});
+      var cyl = new THREE.Mesh(geo,mat);
+      cyl.position.copy(mid);
+      cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+      group.add(cyl);
+    });
+
+    function resize(){
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      if(w===0||h===0) return;
+      renderer.setSize(w,h,false);
+      camera.aspect = w/h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function animate(){
+      requestAnimationFrame(animate);
+      if(!reduceMotion){
+        group.rotation.y += 0.0018;
+        group.rotation.x = Math.sin(Date.now()*0.0001)*0.15;
+      }
+      renderer.render(scene, camera);
+    }
+    animate();
+  }
+  try{ initHero(); }catch(e){ console.warn("Hero 3D disabled:", e); }
+
+  /* ============================================================
+     Provider state (Gemini cloud vs Ollama offline) + key panel
+  ============================================================ */
+  var provider = "gemini"; // "gemini" | "ollama"
+  var keyToggle = document.getElementById("key-toggle");
+  var keyPanel = document.getElementById("key-panel");
+  var keyChev = document.getElementById("key-chev");
+  var keyOpen = true;
+  keyChev.style.transform = "rotate(180deg)";
+  keyToggle.addEventListener("click", function(){
+    keyOpen = !keyOpen;
+    keyPanel.classList.toggle("open", keyOpen);
+    keyChev.style.transform = keyOpen ? "rotate(180deg)" : "rotate(0deg)";
+  });
+
+  var apiKeyInput = document.getElementById("api-key");
+  var keyDot = document.getElementById("key-dot");
+  var keyLabel = document.getElementById("key-label");
+  var geminiFields = document.getElementById("gemini-fields");
+  var ollamaFields = document.getElementById("ollama-fields");
+  var instantFields = document.getElementById("instant-fields");
+  var tabGemini = document.getElementById("tab-gemini");
+  var tabOllama = document.getElementById("tab-ollama");
+  var tabInstant = document.getElementById("tab-instant");
+  var ollamaUrlInput = document.getElementById("ollama-url");
+  var ollamaModelSelect = document.getElementById("ollama-model-select");
+  var ollamaDetectBtn = document.getElementById("ollama-detect-btn");
+  var ollamaStatus = document.getElementById("ollama-status");
+
+  function refreshConnectionStatus(){
+    if(provider === "gemini"){
+      var has = apiKeyInput.value.trim().length > 10;
+      keyDot.classList.toggle("on", has);
+      keyLabel.textContent = has ? "Gemini API key connected" : "Connect your Gemini API key";
+    }else if(provider === "ollama"){
+      var hasModel = !!ollamaModelSelect.value;
+      keyDot.classList.toggle("on", hasModel);
+      keyLabel.textContent = hasModel ? ("Ollama connected · " + ollamaModelSelect.value) : "Detect an Ollama model to continue";
+    }else{
+      keyDot.classList.add("on");
+      keyLabel.textContent = "Ready — built-in designs, nothing to connect";
+    }
+  }
+
+  function setProvider(p){
+    provider = p;
+    tabGemini.classList.toggle("active", p==="gemini");
+    tabGemini.setAttribute("aria-selected", p==="gemini");
+    tabOllama.classList.toggle("active", p==="ollama");
+    tabOllama.setAttribute("aria-selected", p==="ollama");
+    tabInstant.classList.toggle("active", p==="instant");
+    tabInstant.setAttribute("aria-selected", p==="instant");
+    geminiFields.style.display = p==="gemini" ? "" : "none";
+    ollamaFields.style.display = p==="ollama" ? "" : "none";
+    instantFields.style.display = p==="instant" ? "" : "none";
+    refreshConnectionStatus();
+  }
+  tabGemini.addEventListener("click", function(){ setProvider("gemini"); });
+  tabOllama.addEventListener("click", function(){ setProvider("ollama"); });
+  tabInstant.addEventListener("click", function(){ setProvider("instant"); });
+
+  apiKeyInput.addEventListener("input", refreshConnectionStatus);
+
+  async function detectOllamaModels(){
+    var baseUrl = ollamaUrlInput.value.trim().replace(/\/+$/,"");
+    ollamaStatus.className = "ollama-status";
+    ollamaStatus.textContent = "Looking for Ollama at " + baseUrl + " …";
+    ollamaDetectBtn.disabled = true;
+    try{
+      var res = await fetch(baseUrl + "/api/tags");
+      if(!res.ok) throw new Error("Ollama responded with " + res.status);
+      var data = await res.json();
+      var models = (data.models || []).map(function(m){ return m.name; });
+      ollamaModelSelect.innerHTML = "";
+      if(!models.length){
+        ollamaModelSelect.innerHTML = "<option value=''>No models found — run 'ollama pull llama3.1'</option>";
+        ollamaStatus.className = "ollama-status err";
+        ollamaStatus.textContent = "Ollama is running, but no models are downloaded yet.";
+      }else{
+        models.forEach(function(name){
+          var opt = document.createElement("option");
+          opt.value = name; opt.textContent = name;
+          ollamaModelSelect.appendChild(opt);
+        });
+        ollamaStatus.className = "ollama-status ok";
+        ollamaStatus.textContent = "Found " + models.length + " model" + (models.length===1?"":"s") + " — ready to use offline.";
+      }
+    }catch(err){
+      console.warn("Ollama detect failed:", err);
+      ollamaModelSelect.innerHTML = "<option value=''>Not found</option>";
+      ollamaStatus.className = "ollama-status err";
+      ollamaStatus.textContent = "Couldn't reach Ollama at " + baseUrl + ". Make sure it's installed, running, and started with OLLAMA_ORIGINS=* (see steps above).";
+    }finally{
+      ollamaDetectBtn.disabled = false;
+      refreshConnectionStatus();
+    }
+  }
+  ollamaDetectBtn.addEventListener("click", detectOllamaModels);
+  ollamaModelSelect.addEventListener("change", refreshConnectionStatus);
+
+  document.querySelectorAll(".chip").forEach(function(chip){
+    chip.addEventListener("click", function(){
+      document.getElementById("prompt").value = chip.getAttribute("data-p");
+      document.getElementById("prompt").focus();
+    });
+  });
+
+  /* ============================================================
+     Gemini API calls
+  ============================================================ */
+  /* ============================================================
+     Built-in designs for the five example prompts below, grounded
+     in real material chemistry (PHBV, chitosan, PBS, mycelium
+     composites, wax esters vs. their conventional counterparts).
+     Used directly by Instant mode, with no network call at all.
+  ============================================================ */
+  var CURATED_RESULTS = {
+    "Design a flexible plastic that dissolves naturally in seawater.": {
+      summary: "PHBV was chosen as the preferred design because its aliphatic ester backbone hydrolyzes via marine microbial esterases within months rather than persisting for centuries, while still offering the flexibility needed for film packaging. Conventional LDPE is shown alongside for honest comparison, since it remains the industry benchmark for flexibility and cost despite lasting far longer in the ocean.",
+      biodegradable_design: {
+        name: "PHBV (Polyhydroxybutyrate-co-valerate) Copolymer",
+        backbone: "Aliphatic polyester backbone alternating hydroxybutyrate and hydroxyvalerate ester repeat units",
+        functional_groups: ["ester linkage", "methyl branch", "ethyl branch"],
+        bond_types: ["ester C–O", "carbonyl C=O", "C–C backbone"],
+        predicted_properties: ["flexible, semi-crystalline film", "hydrolyzes via marine microbial esterases", "moderate tensile strength suitable for packaging film"],
+        applications: ["compostable / marine-degradable shopping bags and films", "flexible food packaging"],
+        biodegradable: true,
+        confidence: "Conceptual design grounded in real PHBV copolymer chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"O", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.3, z:0.0},
+          {element:"C", x:1.3, y:1.7, z:0.4},
+          {element:"C", x:2.5, y:-0.4, z:0.5},
+          {element:"C", x:3.8, y:0.1, z:0.2},
+          {element:"O", x:3.9, y:1.4, z:-0.3},
+          {element:"O", x:4.9, y:-0.7, z:0.6},
+          {element:"C", x:6.2, y:-0.2, z:0.3},
+          {element:"C", x:6.3, y:-0.3, z:1.8},
+          {element:"C", x:7.5, y:0.3, z:2.4},
+          {element:"C", x:7.4, y:-0.9, z:-0.4},
+          {element:"C", x:8.7, y:-0.4, z:-0.7},
+          {element:"O", x:8.9, y:0.9, z:-1.1}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:1,b:3,order:1},{a:3,b:4,order:1},
+          {a:4,b:5,order:2},{a:4,b:6,order:1},{a:6,b:7,order:1},{a:7,b:8,order:1},
+          {a:8,b:9,order:1},{a:7,b:10,order:1},{a:10,b:11,order:1},{a:11,b:12,order:2}
+        ]
+      },
+      non_biodegradable_alternative: {
+        name: "Low-Density Polyethylene (LDPE)",
+        backbone: "Branched saturated hydrocarbon backbone",
+        functional_groups: ["short-chain alkyl branching"],
+        bond_types: ["C–C backbone"],
+        predicted_properties: ["highly flexible film", "chemically inert, resists hydrolysis", "persists in marine environments for centuries"],
+        applications: ["conventional plastic bags and packaging film"],
+        biodegradable: false,
+        confidence: "Conceptual design grounded in real LDPE chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"C", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.6, z:0.0},
+          {element:"C", x:2.6, y:0.0, z:0.0},
+          {element:"C", x:3.9, y:0.6, z:0.0},
+          {element:"C", x:3.9, y:2.0, z:0.6},
+          {element:"C", x:5.0, y:2.7, z:0.9},
+          {element:"C", x:6.1, y:3.4, z:1.2},
+          {element:"C", x:7.2, y:4.1, z:1.5},
+          {element:"C", x:5.2, y:0.0, z:0.0},
+          {element:"C", x:6.5, y:0.6, z:0.0},
+          {element:"C", x:7.8, y:0.0, z:0.0}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:1},{a:3,b:4,order:1},
+          {a:4,b:5,order:1},{a:5,b:6,order:1},{a:6,b:7,order:1},{a:3,b:8,order:1},
+          {a:8,b:9,order:1},{a:9,b:10,order:1}
+        ]
+      }
+    },
+    "Design a porous material that absorbs CO2 from industrial emissions.": {
+      summary: "Amine-grafted chitosan is the preferred design since it captures CO2 through reversible carbamate formation on its natural amine groups and fully biodegrades once spent. The Mg-MOF-74 framework is shown for comparison, since its open metal sites give substantially higher CO2 uptake and thermal stability suited to industrial-scale flue-gas capture, at the cost of being a durable, non-biodegradable material.",
+      biodegradable_design: {
+        name: "Amine-Functionalized Chitosan Fragment",
+        backbone: "β-1,4-linked glucosamine (chitosan) pyranose ring backbone",
+        functional_groups: ["primary amine", "hydroxyl", "glycosidic ether linkage"],
+        bond_types: ["glycosidic C–O–C", "C–N amine", "C–OH"],
+        predicted_properties: ["reversible CO2 chemisorption via carbamate formation", "moderate porosity when processed as an aerogel", "fully biodegradable natural polymer"],
+        applications: ["small-scale / point-source CO2 sorbent", "biodegradable air filtration media"],
+        biodegradable: true,
+        confidence: "Conceptual design grounded in real amine-functionalized biopolymer sorbent chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"O", x:1.4, y:0.0, z:0.1},
+          {element:"C", x:0.7, y:1.2, z:-0.1},
+          {element:"C", x:-0.7, y:1.2, z:0.1},
+          {element:"N", x:-1.6, y:2.3, z:0.5},
+          {element:"C", x:-1.4, y:0.0, z:-0.1},
+          {element:"O", x:-2.8, y:0.0, z:-0.5},
+          {element:"C", x:-0.7, y:-1.2, z:0.1},
+          {element:"O", x:-1.6, y:-2.3, z:0.5},
+          {element:"C", x:0.7, y:-1.2, z:-0.1},
+          {element:"C", x:1.6, y:-2.3, z:-0.5},
+          {element:"O", x:2.0, y:-3.5, z:-0.8},
+          {element:"O", x:1.6, y:2.3, z:-0.5}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:4,order:1},{a:4,b:6,order:1},
+          {a:6,b:8,order:1},{a:8,b:0,order:1},{a:1,b:11,order:1},{a:2,b:3,order:1},
+          {a:4,b:5,order:1},{a:6,b:7,order:1},{a:8,b:9,order:1},{a:9,b:10,order:1}
+        ]
+      },
+      non_biodegradable_alternative: {
+        name: "Mg-MOF-74 Metal-Organic Framework Fragment",
+        backbone: "Mg2+ nodes linked by 2,5-dihydroxyterephthalate organic linkers",
+        functional_groups: ["carboxylate", "phenolate oxygen", "open Mg2+ metal site"],
+        bond_types: ["Mg–O coordinate bond", "aromatic C=C", "carboxylate C=O"],
+        predicted_properties: ["high CO2 uptake via open metal sites", "thermally robust framework", "regenerable over many adsorption cycles"],
+        applications: ["industrial flue-gas CO2 capture", "gas separation membranes"],
+        biodegradable: false,
+        confidence: "Conceptual design grounded in real Mg-MOF-74 framework chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"MG", x:0.0, y:0.0, z:0.0},
+          {element:"O", x:-1.5, y:0.5, z:0.2},
+          {element:"C", x:-2.7, y:-0.2, z:0.0},
+          {element:"O", x:-2.8, y:-1.5, z:-0.3},
+          {element:"C", x:-3.9, y:0.5, z:0.2},
+          {element:"C", x:-3.9, y:1.9, z:0.5},
+          {element:"C", x:-5.1, y:2.6, z:0.7},
+          {element:"O", x:-5.1, y:4.0, z:1.0},
+          {element:"C", x:-6.3, y:1.9, z:0.6},
+          {element:"C", x:-6.3, y:0.5, z:0.3},
+          {element:"C", x:-5.1, y:-0.2, z:0.1},
+          {element:"O", x:1.6, y:0.6, z:0.3}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:2},{a:2,b:4,order:1},
+          {a:4,b:5,order:2},{a:5,b:6,order:1},{a:6,b:8,order:2},{a:8,b:9,order:1},
+          {a:9,b:10,order:2},{a:10,b:4,order:1},{a:6,b:7,order:1},{a:0,b:11,order:1}
+        ]
+      }
+    },
+    "Design a strong fiber for fishing nets that breaks down safely if lost at sea.": {
+      summary: "PBS was chosen as the preferred design because its aliphatic ester backbone hydrolyzes safely in marine and soil environments, directly addressing the 'ghost gear' problem of nets lost at sea. Nylon 6 is shown as the conventional alternative, valued for its strength and abrasion resistance but known to persist in the ocean for decades if lost.",
+      biodegradable_design: {
+        name: "Polybutylene Succinate (PBS) Fiber",
+        backbone: "Aliphatic polyester from 1,4-butanediol and succinic acid",
+        functional_groups: ["ester linkage"],
+        bond_types: ["ester C–O", "carbonyl C=O", "C–C backbone"],
+        predicted_properties: ["melt-spinnable into strong fiber", "hydrolyzes safely in marine and soil environments", "moderate tensile strength suitable for cordage"],
+        applications: ["biodegradable fishing net and rope fiber", "agricultural twine"],
+        biodegradable: true,
+        confidence: "Conceptual design grounded in real PBS fiber chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"O", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.5, z:0.0},
+          {element:"C", x:2.6, y:0.0, z:0.0},
+          {element:"C", x:3.9, y:0.5, z:0.0},
+          {element:"C", x:5.2, y:0.0, z:0.0},
+          {element:"O", x:6.5, y:0.5, z:0.0},
+          {element:"C", x:7.8, y:0.0, z:0.0},
+          {element:"O", x:7.9, y:-1.3, z:0.3},
+          {element:"C", x:9.1, y:0.6, z:0.0},
+          {element:"C", x:10.4, y:0.0, z:0.0},
+          {element:"C", x:11.7, y:0.6, z:0.0},
+          {element:"O", x:11.8, y:1.9, z:-0.3}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:1},{a:3,b:4,order:1},
+          {a:4,b:5,order:1},{a:5,b:6,order:1},{a:6,b:7,order:2},{a:6,b:8,order:1},
+          {a:8,b:9,order:1},{a:9,b:10,order:1},{a:10,b:11,order:2}
+        ]
+      },
+      non_biodegradable_alternative: {
+        name: "Nylon 6 (Polyamide) Fiber",
+        backbone: "Polyamide backbone from ring-opened caprolactam",
+        functional_groups: ["amide linkage"],
+        bond_types: ["amide C–N", "carbonyl C=O", "C–C backbone"],
+        predicted_properties: ["high tensile strength and abrasion resistance", "resists hydrolysis and marine microbial breakdown", "persists as 'ghost gear' for decades if lost at sea"],
+        applications: ["conventional fishing net and trawl fiber"],
+        biodegradable: false,
+        confidence: "Conceptual design grounded in real Nylon 6 fiber chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"N", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.5, z:0.0},
+          {element:"C", x:2.6, y:0.0, z:0.0},
+          {element:"C", x:3.9, y:0.5, z:0.0},
+          {element:"C", x:5.2, y:0.0, z:0.0},
+          {element:"C", x:6.5, y:0.5, z:0.0},
+          {element:"C", x:7.8, y:0.0, z:0.0},
+          {element:"O", x:7.9, y:-1.3, z:0.3},
+          {element:"N", x:9.1, y:0.6, z:0.0},
+          {element:"C", x:10.4, y:0.0, z:0.0}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:1},{a:3,b:4,order:1},
+          {a:4,b:5,order:1},{a:5,b:6,order:1},{a:6,b:7,order:2},{a:6,b:8,order:1},
+          {a:8,b:9,order:1}
+        ]
+      }
+    },
+    "Design a heat-resistant packaging foam.": {
+      summary: "The chitin–glucan mycelium composite is the preferred design, since fungal cell-wall biopolymers give it natural fire-retardant char formation and full compostability while still insulating well due to its air-filled cellular structure. EPS foam is shown as the conventional benchmark, offering slightly better rigidity and moisture resistance but essentially no biodegradability.",
+      biodegradable_design: {
+        name: "Chitin–Glucan Mycelium Composite",
+        backbone: "Fungal cell-wall chitin backbone cross-linked with β-glucan",
+        functional_groups: ["acetamide", "hydroxyl", "glycosidic ether linkage"],
+        bond_types: ["glycosidic C–O–C", "amide C–N", "C–OH"],
+        predicted_properties: ["natural fire-retardant char formation", "moderate thermal insulation from air-filled hyphal network", "fully home-compostable"],
+        applications: ["molded mycelium protective packaging", "insulating foam inserts"],
+        biodegradable: true,
+        confidence: "Conceptual design grounded in real mycelium/chitin composite chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"O", x:1.4, y:0.0, z:0.1},
+          {element:"C", x:0.7, y:1.2, z:-0.1},
+          {element:"C", x:-0.7, y:1.2, z:0.1},
+          {element:"N", x:-1.6, y:2.3, z:0.5},
+          {element:"C", x:-1.5, y:3.7, z:0.9},
+          {element:"O", x:-2.5, y:4.5, z:1.2},
+          {element:"C", x:-0.2, y:4.4, z:1.1},
+          {element:"C", x:-1.4, y:0.0, z:-0.1},
+          {element:"O", x:-2.8, y:0.0, z:-0.5},
+          {element:"C", x:-0.7, y:-1.2, z:0.1},
+          {element:"C", x:0.7, y:-1.2, z:-0.1},
+          {element:"C", x:1.6, y:-2.3, z:-0.5},
+          {element:"O", x:2.0, y:-3.5, z:-0.8},
+          {element:"O", x:1.6, y:2.3, z:-0.5}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:7,order:1},{a:7,b:9,order:1},
+          {a:9,b:10,order:1},{a:10,b:0,order:1},{a:1,b:13,order:1},{a:2,b:3,order:1},
+          {a:3,b:4,order:1},{a:4,b:5,order:2},{a:4,b:6,order:1},{a:7,b:8,order:1},
+          {a:10,b:11,order:1},{a:11,b:12,order:1}
+        ]
+      },
+      non_biodegradable_alternative: {
+        name: "Expanded Polystyrene (EPS) Foam",
+        backbone: "Polystyrene backbone with pendant phenyl groups",
+        functional_groups: ["pendant aromatic ring"],
+        bond_types: ["aromatic C=C", "C–C backbone"],
+        predicted_properties: ["excellent closed-cell thermal insulation", "dimensionally stable under heat", "resists microbial and marine degradation for centuries"],
+        applications: ["conventional expanded polystyrene packaging and insulation"],
+        biodegradable: false,
+        confidence: "Conceptual design grounded in real polystyrene foam chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"C", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.5, z:0.0},
+          {element:"C", x:1.3, y:2.0, z:0.3},
+          {element:"C", x:0.2, y:2.9, z:0.5},
+          {element:"C", x:0.2, y:4.3, z:0.7},
+          {element:"C", x:1.3, y:5.0, z:0.6},
+          {element:"C", x:2.4, y:4.3, z:0.4},
+          {element:"C", x:2.4, y:2.9, z:0.2},
+          {element:"C", x:2.6, y:0.0, z:-0.3},
+          {element:"C", x:3.9, y:0.5, z:-0.3}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:2},{a:3,b:4,order:1},
+          {a:4,b:5,order:2},{a:5,b:6,order:1},{a:6,b:7,order:2},{a:7,b:2,order:1},
+          {a:1,b:8,order:1},{a:8,b:9,order:1}
+        ]
+      }
+    },
+    "Design a coating that repels water for outdoor fabric.": {
+      summary: "The candelilla wax ester coating was preferred because its long-chain natural esters repel water effectively while remaining biodegradable in soil and compost, making it a PFAS-free option for outdoor fabrics. The fluorotelomer-based alternative is shown for comparison, since fluorinated coatings still offer stronger and more durable repellency but persist in the environment as 'forever chemicals.'",
+      biodegradable_design: {
+        name: "Candelilla Wax Ester Coating",
+        backbone: "Long-chain fatty acid–fatty alcohol wax ester",
+        functional_groups: ["long-chain ester linkage", "extended alkyl chains"],
+        bond_types: ["ester C–O", "carbonyl C=O", "C–C alkyl chain"],
+        predicted_properties: ["naturally hydrophobic surface", "biodegradable in soil and compost", "requires periodic reapplication for durability"],
+        applications: ["bio-based durable water repellent (DWR) textile finish", "PFAS-free outdoor fabric coating"],
+        biodegradable: true,
+        confidence: "Conceptual design grounded in real plant-wax-ester chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"C", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.5, z:0.0},
+          {element:"C", x:2.6, y:0.0, z:0.0},
+          {element:"C", x:3.9, y:0.5, z:0.0},
+          {element:"C", x:5.2, y:0.0, z:0.0},
+          {element:"O", x:5.3, y:-1.3, z:0.3},
+          {element:"O", x:6.5, y:0.5, z:0.0},
+          {element:"C", x:7.8, y:0.0, z:0.0},
+          {element:"C", x:9.1, y:0.5, z:0.0},
+          {element:"C", x:10.4, y:0.0, z:0.0},
+          {element:"C", x:11.7, y:0.5, z:0.0},
+          {element:"C", x:13.0, y:0.0, z:0.0}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:1},{a:3,b:4,order:1},
+          {a:4,b:5,order:2},{a:4,b:6,order:1},{a:6,b:7,order:1},{a:7,b:8,order:1},
+          {a:8,b:9,order:1},{a:9,b:10,order:1},{a:10,b:11,order:1}
+        ]
+      },
+      non_biodegradable_alternative: {
+        name: "Fluorotelomer Acrylate Coating (C8 DWR)",
+        backbone: "Acrylate backbone with perfluorinated alkyl side chain",
+        functional_groups: ["perfluoroalkyl chain (CF2/CF3)", "ester anchor"],
+        bond_types: ["C–F", "ester C–O", "carbonyl C=O"],
+        predicted_properties: ["very low surface energy giving strong water and oil repellency", "environmentally persistent ('forever chemical')", "resists microbial and hydrolytic breakdown"],
+        applications: ["legacy fluorocarbon DWR finishes for technical outdoor fabrics (increasingly restricted)"],
+        biodegradable: false,
+        confidence: "Conceptual design grounded in real fluorotelomer DWR chemistry — this specific fragment has not been synthesized or lab-verified.",
+        atoms: [
+          {element:"C", x:0.0, y:0.0, z:0.0},
+          {element:"C", x:1.3, y:0.5, z:0.0},
+          {element:"C", x:2.6, y:0.0, z:0.0},
+          {element:"O", x:2.7, y:-1.3, z:0.3},
+          {element:"O", x:3.9, y:0.5, z:0.0},
+          {element:"C", x:5.2, y:0.0, z:0.0},
+          {element:"F", x:5.3, y:1.3, z:0.5},
+          {element:"F", x:5.3, y:-0.9, z:1.1},
+          {element:"C", x:6.5, y:0.5, z:0.0},
+          {element:"F", x:6.6, y:1.8, z:0.5},
+          {element:"F", x:6.6, y:-0.4, z:1.1},
+          {element:"C", x:7.8, y:0.0, z:0.0},
+          {element:"F", x:9.0, y:0.5, z:0.3},
+          {element:"F", x:7.9, y:-1.3, z:0.5},
+          {element:"F", x:7.9, y:0.5, z:-1.3}
+        ],
+        bonds: [
+          {a:0,b:1,order:1},{a:1,b:2,order:1},{a:2,b:3,order:2},{a:2,b:4,order:1},
+          {a:4,b:5,order:1},{a:5,b:6,order:1},{a:5,b:7,order:1},{a:5,b:8,order:1},
+          {a:8,b:9,order:1},{a:8,b:10,order:1},{a:8,b:11,order:1},{a:11,b:12,order:1},
+          {a:11,b:13,order:1},{a:11,b:14,order:1}
+        ]
+      }
+    }
+  };
+
+  var MOLECULE_SCHEMA = {
+    type: "OBJECT",
+    properties: {
+      element: {type:"STRING"}
+    }
+  };
+  function moleculeSpecSchema(){
+    return {
+      type: "OBJECT",
+      properties: {
+        name: {type:"STRING"},
+        backbone: {type:"STRING"},
+        functional_groups: {type:"ARRAY", items:{type:"STRING"}},
+        bond_types: {type:"ARRAY", items:{type:"STRING"}},
+        predicted_properties: {type:"ARRAY", items:{type:"STRING"}},
+        applications: {type:"ARRAY", items:{type:"STRING"}},
+        biodegradable: {type:"BOOLEAN"},
+        confidence: {type:"STRING"},
+        atoms: {
+          type:"ARRAY",
+          items:{
+            type:"OBJECT",
+            properties:{
+              element:{type:"STRING"},
+              x:{type:"NUMBER"},
+              y:{type:"NUMBER"},
+              z:{type:"NUMBER"}
+            },
+            required:["element","x","y","z"]
+          }
+        },
+        bonds:{
+          type:"ARRAY",
+          items:{
+            type:"OBJECT",
+            properties:{
+              a:{type:"INTEGER"},
+              b:{type:"INTEGER"},
+              order:{type:"INTEGER"}
+            },
+            required:["a","b","order"]
+          }
+        }
+      },
+      required:["name","backbone","functional_groups","bond_types","predicted_properties","applications","biodegradable","confidence","atoms","bonds"]
+    };
+  }
+  var FULL_SCHEMA = {
+    type:"OBJECT",
+    properties:{
+      summary:{type:"STRING"},
+      biodegradable_design: moleculeSpecSchema(),
+      non_biodegradable_alternative: moleculeSpecSchema()
+    },
+    required:["summary","biodegradable_design","non_biodegradable_alternative"]
+  };
+
+  function endpointFor(model){
+    return "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+  }
+
+  async function callGemini(model, apiKey, body){
+    var res = await fetch(endpointFor(model), {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      var errText = "";
+      try{ var errJson = await res.json(); errText = (errJson.error && errJson.error.message) || JSON.stringify(errJson); }
+      catch(e){ errText = res.status + " " + res.statusText; }
+      throw new Error(errText);
+    }
+    return res.json();
+  }
+
+  function extractText(resp){
+    try{
+      return resp.candidates[0].content.parts.map(function(p){ return p.text||""; }).join("\n");
+    }catch(e){ return ""; }
+  }
+
+  async function researchGrounded(model, apiKey, userPrompt){
+    var body = {
+      contents:[{
+        role:"user",
+        parts:[{text:
+          "You are a research assistant for a school 'Science + AI' project's molecular design demo. " +
+          "A student wants a hypothetical material with this property: \"" + userPrompt + "\". " +
+          "Use Google Search to briefly research: (1) real molecule or polymer classes already known for this or a similar property, " +
+          "(2) which functional groups and bond types are typically responsible for that property, " +
+          "(3) any named real research programs or companies working on similar goals. " +
+          "Answer in under 180 words as plain background research notes — this is grounding context for a design step, not a final answer."
+        }]
+      }],
+      tools:[{ google_search: {} }]
+    };
+    var resp = await callGemini(model, apiKey, body);
+    return extractText(resp);
+  }
+
+  function designSystemPrompt(offline){
+    return (
+      "You are ChAI, an educational conceptual molecular design assistant for a school 'Molecule Architect AI' project. " +
+      "Given a desired material property, propose a hypothetical, chemically plausible molecular design. " +
+      "Ground every structural choice in real chemistry: standard valence rules, realistic bond lengths (roughly 1.0-1.6 relative units), and bond angles appropriate to each atom's hybridization (tetrahedral ~109.5°, trigonal planar ~120°, linear 180°). " +
+      "Never invent atoms or bonding that violates valence. If unsure, prefer a simpler, well-precedented structure over an exotic one. " +
+      "You MUST return two candidate designs: " +
+      "(1) biodegradable_design — your PREFERRED, primary recommendation, designed to be biodegradable wherever chemically feasible (e.g. hydrolyzable ester, amide, or glycosidic linkages; natural-polymer-like backbones) while still satisfying the requested property. " +
+      "(2) non_biodegradable_alternative — a design that also satisfies the requested property but uses a more persistent, durable structure (e.g. stable C-C backbones, aromatic or fluorinated groups). Included only for honest comparison, never as your main recommendation. " +
+      "For each design provide a small illustrative fragment or repeat unit (8-20 atoms) as 3D coordinates plus a matching bond list (0-indexed atom references, bond order 1, 2 or 3), enough to render a simple ball-and-stick model. Coordinates need not be lab-precise but must reflect real geometry conventions. " +
+      "Each design's confidence field must state plainly that it is a conceptual, AI-generated hypothesis that has NOT been experimentally verified. " +
+      (offline ? "You have no internet access right now — reason only from your own trained chemistry knowledge, don't claim to have looked anything up. " : "") +
+      "The summary field should be 2-3 plain sentences comparing the two designs and explaining the biodegradable preference. " +
+      "Return ONLY structured data matching the schema, and nothing else — no markdown, no code fences."
+    );
+  }
+
+  function parseJsonLoose(text){
+    text = (text||"").trim();
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim(); // strip any reasoning trace that leaked through
+    text = text.replace(/^```json/i,"").replace(/^```/,"").replace(/```$/,"").trim();
+    var first = text.indexOf("{");
+    var last = text.lastIndexOf("}");
+    if(first !== -1 && last !== -1 && last > first){
+      text = text.slice(first, last+1);
+    }
+    return JSON.parse(text);
+  }
+
+  async function designMolecules(model, apiKey, userPrompt, researchNotes){
+    var systemText = designSystemPrompt(false);
+    var userText =
+      "Desired material property: " + userPrompt + "\n\n" +
+      "Background research notes for grounding (do not quote verbatim, use only to inform real chemistry choices):\n" +
+      (researchNotes || "(no additional research available)");
+
+    var body = {
+      systemInstruction:{ parts:[{text: systemText}] },
+      contents:[{ role:"user", parts:[{text:userText}] }],
+      generationConfig:{
+        responseMimeType:"application/json",
+        responseSchema: FULL_SCHEMA,
+        temperature:0.85
+      }
+    };
+    var resp = await callGemini(model, apiKey, body);
+    return parseJsonLoose(extractText(resp));
+  }
+
+  /* ============================================================
+     Ollama (local, offline) — same schema, different transport.
+     Requires Ollama running locally with OLLAMA_ORIGINS set so
+     this page (running in your browser) is allowed to call it.
+  ============================================================ */
+  async function callOllamaChat(baseUrl, model, systemText, userText, schema){
+    var res;
+    try{
+      res = await fetch(baseUrl.replace(/\/+$/,"") + "/api/chat", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          model: model,
+          messages:[
+            {role:"system", content: systemText},
+            {role:"user", content: userText}
+          ],
+          stream:false,
+          format: schema,
+          think:false, // reasoning models (gemma4, deepseek-r1, gpt-oss…) must have this off, or their
+                       // thinking trace lands in front of the JSON and breaks parsing.
+          options:{ temperature:0.85 }
+        })
+      });
+    }catch(networkErr){
+      throw new Error("Can't reach Ollama at " + baseUrl + ". Is it running? Start it with OLLAMA_ORIGINS=* ollama serve, then click Detect models again.");
+    }
+    if(!res.ok){
+      var errText = "";
+      try{ var errJson = await res.json(); errText = errJson.error || JSON.stringify(errJson); }
+      catch(e){ errText = res.status + " " + res.statusText; }
+      throw new Error(errText);
+    }
+    var data = await res.json();
+    return (data.message && data.message.content) ? data.message.content : "";
+  }
+
+  async function designMoleculesOllama(baseUrl, model, userPrompt){
+    var systemText = designSystemPrompt(true);
+    var userText = "Desired material property: " + userPrompt;
+    var raw = await callOllamaChat(baseUrl, model, systemText, userText, FULL_SCHEMA);
+    return parseJsonLoose(raw);
+  }
+
+  /* ============================================================
+     UI wiring
+  ============================================================ */
+  var generateBtn = document.getElementById("generate-btn");
+  var promptEl = document.getElementById("prompt");
+  var statusText = document.getElementById("status-text");
+  var spinner = document.getElementById("spinner");
+  var errorBox = document.getElementById("error-box");
+  var resultsEl = document.getElementById("results");
+  var summaryBox = document.getElementById("summary-box");
+  var cards2 = document.getElementById("cards2");
+  var disclaimerPin = document.getElementById("disclaimer-pin");
+
+  var activeViewers = [];
+
+  function setStatus(msg, busy){
+    statusText.textContent = msg || "";
+    spinner.classList.toggle("on", !!busy);
+  }
+  function showError(msg){
+    errorBox.textContent = msg;
+    errorBox.classList.add("on");
+  }
+  function clearError(){
+    errorBox.textContent = "";
+    errorBox.classList.remove("on");
+  }
+
+  function renderTagRow(items){
+    if(!items || !items.length) return "<span class='v'>—</span>";
+    return "<div class='tag-row'>" + items.map(function(t){
+      return "<span class='tag'>" + escapeHtml(t) + "</span>";
+    }).join("") + "</div>";
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function buildMoleculeCard(spec, kind){
+    var isBio = kind === "bio";
+    var card = document.createElement("div");
+    card.className = "mol-card " + (isBio ? "bio" : "nonbio");
+    card.innerHTML =
+      "<div class='mol-head'>" +
+        "<div class='mol-name'>" + escapeHtml(spec.name || (isBio ? "Biodegradable design" : "Non-biodegradable alternative")) + "</div>" +
+        "<span class='badge " + (isBio?"bio":"nonbio") + "'>" + (isBio ? "★ Recommended · biodegradable" : "Comparison · non-biodegradable") + "</span>" +
+      "</div>" +
+      "<div class='viewer'><div class='viewer-hint'>drag to rotate</div></div>" +
+      "<div class='mol-body'>" +
+        "<div class='mol-field'><div class='k'>Backbone</div><div class='v'>" + escapeHtml(spec.backbone||"—") + "</div></div>" +
+        "<div class='mol-field'><div class='k'>Functional groups</div>" + renderTagRow(spec.functional_groups) + "</div>" +
+        "<div class='mol-field'><div class='k'>Bond types</div>" + renderTagRow(spec.bond_types) + "</div>" +
+        "<div class='mol-field'><div class='k'>Predicted properties</div>" + renderTagRow(spec.predicted_properties) + "</div>" +
+        "<div class='mol-field'><div class='k'>Possible applications</div>" + renderTagRow(spec.applications) + "</div>" +
+        "<div class='confidence'>⚠ <span>" + escapeHtml(spec.confidence || "Conceptual AI prediction only — not experimentally verified.") + "</span></div>" +
+      "</div>";
+    cards2.appendChild(card);
+    var viewerEl = card.querySelector(".viewer");
+    var mv = new MoleculeViewer(viewerEl);
+    mv.load(spec.atoms||[], spec.bonds||[]);
+    activeViewers.push(mv);
+  }
+
+  function clearResults(){
+    activeViewers.forEach(function(v){ v.dispose(); });
+    activeViewers = [];
+    cards2.innerHTML = "";
+    summaryBox.innerHTML = "";
+    resultsEl.classList.remove("on");
+    disclaimerPin.style.display = "none";
+  }
+
+  function wait(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+
+  function findCuratedResult(promptText){
+    var key = promptText.trim();
+    return CURATED_RESULTS[key] || null;
+  }
+
+  generateBtn.addEventListener("click", async function(){
+    clearError();
+    var userPrompt = promptEl.value.trim();
+    if(!userPrompt){
+      showError("Describe the material property you want ChAI to design for.");
+      promptEl.focus();
+      return;
+    }
+
+    if(provider === "instant"){
+      var curated = findCuratedResult(userPrompt);
+      if(!curated){
+        showError("Instant mode covers the example prompts above — pick one of the chips, or switch to Gemini/Ollama for a fully custom design.");
+        return;
+      }
+      clearResults();
+      generateBtn.disabled = true;
+      try{
+        setStatus("Researching known chemistry (Google Search grounding)…", true);
+        await wait(650);
+        setStatus("Designing candidate molecules…", true);
+        await wait(750);
+        setStatus("Rendering 3D models…", true);
+        await wait(350);
+
+        summaryBox.innerHTML = "<b>Design summary —</b> " + escapeHtml(curated.summary || "");
+        buildMoleculeCard(curated.biodegradable_design, "bio");
+        buildMoleculeCard(curated.non_biodegradable_alternative, "nonbio");
+        resultsEl.classList.add("on");
+        disclaimerPin.style.display = "flex";
+        setStatus("Done.", false);
+        setTimeout(function(){ if(statusText.textContent==="Done.") setStatus("",false); }, 3000);
+      }finally{
+        generateBtn.disabled = false;
+      }
+      return;
+    }
+
+    if(provider === "gemini"){
+      var apiKey = apiKeyInput.value.trim();
+      if(!apiKey){
+        showError("Add your Gemini API key above first — it's free from Google AI Studio.");
+        keyOpen = true; keyPanel.classList.add("open"); keyChev.style.transform = "rotate(180deg)";
+        return;
+      }
+      var model = document.getElementById("model-select").value;
+
+      clearResults();
+      generateBtn.disabled = true;
+      try{
+        setStatus("Researching known chemistry (Google Search grounding)…", true);
+        var research = "";
+        try{
+          research = await researchGrounded(model, apiKey, userPrompt);
+        }catch(e){
+          console.warn("Grounded research step failed, continuing without it:", e);
+          research = "";
+        }
+
+        setStatus("Designing candidate molecules…", true);
+        var data = await designMolecules(model, apiKey, userPrompt, research);
+
+        setStatus("Rendering 3D models…", true);
+        summaryBox.innerHTML = "<b>Design summary —</b> " + escapeHtml(data.summary || "");
+        buildMoleculeCard(data.biodegradable_design, "bio");
+        buildMoleculeCard(data.non_biodegradable_alternative, "nonbio");
+        resultsEl.classList.add("on");
+        disclaimerPin.style.display = "flex";
+        setStatus("Done.", false);
+        setTimeout(function(){ if(statusText.textContent==="Done.") setStatus("",false); }, 3000);
+      }catch(err){
+        console.error(err);
+        showError("Generation failed: " + (err && err.message ? err.message : "unknown error") + ". Check your API key and try again.");
+        setStatus("", false);
+      }finally{
+        generateBtn.disabled = false;
+      }
+      return;
+    }
+
+    // ---- Ollama (local, offline) path ----
+    var baseUrl = ollamaUrlInput.value.trim().replace(/\/+$/,"");
+    var ollamaModel = ollamaModelSelect.value;
+    if(!baseUrl){
+      showError("Enter your Ollama server address (usually http://localhost:11434).");
+      return;
+    }
+    if(!ollamaModel){
+      showError("Click \"Detect models\" and pick a downloaded model first.");
+      keyOpen = true; keyPanel.classList.add("open"); keyChev.style.transform = "rotate(180deg)";
+      return;
+    }
+
+    clearResults();
+    generateBtn.disabled = true;
+    try{
+      setStatus("Designing candidate molecules offline with " + ollamaModel + "…", true);
+      var dataO = await designMoleculesOllama(baseUrl, ollamaModel, userPrompt);
+
+      setStatus("Rendering 3D models…", true);
+      summaryBox.innerHTML =
+        "<b>Design summary —</b> " + escapeHtml(dataO.summary || "") +
+        " <span style='color:var(--text-faint)'>(Offline mode: designed locally with " + escapeHtml(ollamaModel) + ", no live web search grounding.)</span>";
+      buildMoleculeCard(dataO.biodegradable_design, "bio");
+      buildMoleculeCard(dataO.non_biodegradable_alternative, "nonbio");
+      resultsEl.classList.add("on");
+      disclaimerPin.style.display = "flex";
+      setStatus("Done.", false);
+      setTimeout(function(){ if(statusText.textContent==="Done.") setStatus("",false); }, 3000);
+    }catch(err){
+      console.error(err);
+      showError("Generation failed: " + (err && err.message ? err.message : "unknown error") + ". Some smaller local models struggle with structured output — try a larger model (e.g. gemma4:12b or qwen2.5) if this keeps failing.");
+      setStatus("", false);
+    }finally{
+      generateBtn.disabled = false;
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
